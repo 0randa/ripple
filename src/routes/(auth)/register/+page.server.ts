@@ -1,4 +1,4 @@
-import { fail } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
 
 export const actions: Actions = {
@@ -7,10 +7,15 @@ export const actions: Actions = {
 		const email = formData.get('email') as string;
 		const password = formData.get('password') as string;
 
-		const { error } = await supabase.auth.signUp({ email, password });
+		const { data, error } = await supabase.auth.signUp({ email, password });
 
 		if (error) {
 			return fail(400, { error: error.message });
+		}
+
+		// Email confirmation disabled — session returned immediately
+		if (data.session) {
+			throw redirect(303, '/dashboard');
 		}
 
 		return { success: true };
